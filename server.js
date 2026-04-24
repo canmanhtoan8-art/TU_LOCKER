@@ -730,6 +730,52 @@ app.post("/admin-reset/:id", async (req, res) => {
     });
   }
 });
+/* ================= LOCKER USER DATA ================= */
+app.post("/locker-data/:id", async (req, res) => {
+  try {
+    const lockerId = normalizeText(req.params.id);
+    const { method, pin, paymentMode } = req.body;
+
+    await db.ref(`lockerData/${lockerId}`).set({
+      method: method || "",
+      pin: pin || "",
+      paymentMode: paymentMode || "",
+      updatedAt: Date.now()
+    });
+
+    return res.json({ ok: true });
+  } catch (error) {
+    console.error("Lỗi lưu locker-data:", error);
+    return res.status(500).json({ ok: false });
+  }
+});
+
+app.get("/locker-data/:id", async (req, res) => {
+  try {
+    const lockerId = normalizeText(req.params.id);
+    const snap = await db.ref(`lockerData/${lockerId}`).once("value");
+
+    if (!snap.exists()) {
+      return res.status(404).json({ ok: false });
+    }
+
+    return res.json({ ok: true, data: snap.val() });
+  } catch (error) {
+    console.error("Lỗi đọc locker-data:", error);
+    return res.status(500).json({ ok: false });
+  }
+});
+
+app.delete("/locker-data/:id", async (req, res) => {
+  try {
+    const lockerId = normalizeText(req.params.id);
+    await db.ref(`lockerData/${lockerId}`).remove();
+    return res.json({ ok: true });
+  } catch (error) {
+    console.error("Lỗi xóa locker-data:", error);
+    return res.status(500).json({ ok: false });
+  }
+});
 /* ================= RUN ================= */
 app.listen(port, () => {
   console.log("🚀 Server chạy tại: http://localhost:" + port);

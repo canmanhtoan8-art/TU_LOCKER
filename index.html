@@ -169,7 +169,6 @@
 
   <div id="lockerStatus" class="container"></div>
 
-  <!-- CHỌN HÌNH THỨC -->
   <div id="modeForm" class="hidden">
     <h2 id="modeTitle"></h2>
 
@@ -180,7 +179,6 @@
     </div>
   </div>
 
-  <!-- REGISTER -->
   <div id="registerForm" class="hidden">
     <h2 id="lockerTitle"></h2>
 
@@ -212,7 +210,6 @@
     </div>
   </div>
 
-  <!-- LOGIN -->
   <div id="loginForm" class="hidden">
     <h2 id="loginTitle"></h2>
 
@@ -263,6 +260,44 @@
       localStorage.setItem("lockerStatus", JSON.stringify(lockerStatus));
     }
 
+    async function saveLockerDataToServer(lockerId, data) {
+      await fetch("/locker-data/" + lockerId, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+    }
+
+    async function loadLockerDataFromServer(lockerId) {
+      try {
+        const res = await fetch("/locker-data/" + lockerId);
+        const result = await res.json();
+
+        if (result.ok && result.data) {
+          lockerData[lockerId] = result.data;
+          saveLocalData();
+          return result.data;
+        }
+
+        return null;
+      } catch (err) {
+        console.log("Lỗi loadLockerDataFromServer:", err);
+        return null;
+      }
+    }
+
+    async function deleteLockerDataFromServer(lockerId) {
+      try {
+        await fetch("/locker-data/" + lockerId, {
+          method: "DELETE"
+        });
+      } catch (err) {
+        console.log("Lỗi deleteLockerDataFromServer:", err);
+      }
+    }
+
     function renderStatus() {
       let html = "";
 
@@ -292,6 +327,10 @@
 
           if (state.status === "busy") {
             lockerStatus[i] = 1;
+
+            if (!lockerData[i]) {
+              await loadLockerDataFromServer(i);
+            }
           } else {
             lockerStatus[i] = 0;
             lockerData[i] = null;
@@ -352,6 +391,8 @@
             pin: pending.pin || "",
             paymentMode: pending.paymentMode || "paid"
           };
+
+          saveLockerDataToServer(paidLocker, lockerData[paidLocker]);
           localStorage.removeItem("pendingLockerData");
         }
       }
@@ -365,7 +406,7 @@
     syncLockerUiStateFromServer();
     setInterval(syncLockerUiStateFromServer, 2000);
 
-    function handleLockerClick(num) {
+    async function handleLockerClick(num) {
       selectedLocker = num;
       resetForms();
 
@@ -382,7 +423,12 @@
         document.getElementById("registerForm").classList.add("hidden");
         document.getElementById("loginTitle").innerHTML = "Mở Tủ " + num;
 
-        const data = lockerData[num];
+        let data = lockerData[num];
+
+        if (!data) {
+          data = await loadLockerDataFromServer(num);
+        }
+
         if (data) {
           document.getElementById("loginMethod").innerHTML = data.method;
         } else {
@@ -484,6 +530,7 @@
             paymentMode: "free"
           };
 
+          await saveLockerDataToServer(selectedLocker, lockerData[selectedLocker]);
           await fetch("/admin-set-busy/" + selectedLocker, { method: "POST" });
 
           saveLocalData();
@@ -495,8 +542,12 @@
       }
     }
 
-    function loginPin() {
-      const data = lockerData[selectedLocker];
+    async function loginPin() {
+      let data = lockerData[selectedLocker];
+
+      if (!data) {
+        data = await loadLockerDataFromServer(selectedLocker);
+      }
 
       if (!data) {
         alert("Không tìm thấy dữ liệu!");
@@ -513,7 +564,11 @@
     }
 
     async function loginFace() {
-      const data = lockerData[selectedLocker];
+      let data = lockerData[selectedLocker];
+
+      if (!data) {
+        data = await loadLockerDataFromServer(selectedLocker);
+      }
 
       if (!data) {
         alert("Không tìm thấy dữ liệu!");
@@ -533,7 +588,10 @@
         lockerStatus[selectedLocker] = 0;
         lockerData[selectedLocker] = null;
         saveLocalData();
+
         await fetch("/admin-reset/" + selectedLocker, { method: "POST" });
+        await deleteLockerDataFromServer(selectedLocker);
+
         renderStatus();
         goHome();
       } catch (err) {
@@ -543,7 +601,11 @@
 
     async function openLocker() {
       const inputPin = document.getElementById("loginPinInput").value.trim();
-      const data = lockerData[selectedLocker];
+      let data = lockerData[selectedLocker];
+
+      if (!data) {
+        data = await loadLockerDataFromServer(selectedLocker);
+      }
 
       if (!data) {
         alert("Không tìm thấy dữ liệu!");
@@ -578,7 +640,10 @@
         lockerStatus[selectedLocker] = 0;
         lockerData[selectedLocker] = null;
         saveLocalData();
+
         await fetch("/admin-reset/" + selectedLocker, { method: "POST" });
+        await deleteLockerDataFromServer(selectedLocker);
+
         renderStatus();
         goHome();
       } catch (err) {
