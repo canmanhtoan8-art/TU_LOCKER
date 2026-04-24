@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hệ thống tủ thông minh</title>
+
+  <style>
+    body{
+      font-family:'Segoe UI', Arial, sans-serif;
+      text-align:center;
+      margin:0;
+      color:white;
+      min-height:100vh;
+      background: linear-gradient(-45deg,
+        #ff9a9e,
+        #fad0c4,
+        #a18cd1,
+        #89f7fe,
+        #fbc2eb
+      );
+      background-size:400% 400%;
+      animation:galaxyMove 12s ease infinite;
+    }
+
+    @keyframes galaxyMove{
+      0%{background-position:0% 50%;}
+      50%{background-position:100% 50%;}
+      100%{background-position:0% 50%;}
+    }
+
+    .titleBox{
+      display:inline-block;
+      margin-top:25px;
+      padding:15px 45px;
+      border-radius:12px;
+      background:linear-gradient(135deg,#ff9800,#ff5722);
+      box-shadow:0 6px 20px rgba(0,0,0,0.4);
+    }
+
+    .titleBox h1{
+      margin:0;
+      font-size:32px;
+    }
+
+    .container{
+      display:grid;
+      grid-template-columns:repeat(4,120px);
+      gap:25px;
+      justify-content:center;
+      margin-top:40px;
+      padding-bottom:30px;
+    }
+
+    .locker{
+      width:120px;
+      height:120px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:22px;
+      font-weight:bold;
+      color:black;
+      border-radius:15px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.4);
+      transition:0.3s;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .locker:hover{ transform:scale(1.08); }
+    .locker:active{ transform:scale(0.95); }
+
+    .free{ background:linear-gradient(135deg,#00e676,#00c853); }
+    .busy{ background:linear-gradient(135deg,#ff1744,#d50000); }
+
+    #modeForm, #registerForm, #loginForm{
+      background:rgba(255,255,255,0.95);
+      color:black;
+      padding:30px;
+      border-radius:18px;
+      width:340px;
+      margin:40px auto;
+      box-shadow:0 12px 35px rgba(0,0,0,0.35);
+    }
+
+    input{
+      width:90%;
+      padding:12px;
+      font-size:16px;
+      margin:10px 0;
+      border-radius:10px;
+      border:1px solid #ccc;
+      box-sizing:border-box;
+    }
+
+    input:focus{
+      outline:none;
+      border-color:#1e88e5;
+      box-shadow:0 0 8px rgba(30,136,229,0.5);
+    }
+
+    .actionGroup{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:20px;
+    }
+
+    .actionGroup button{
+      width:100%;
+      padding:14px;
+      font-size:15px;
+      border-radius:10px;
+      border:none;
+      color:white;
+      cursor:pointer;
+      font-weight:bold;
+    }
+
+    .actionGroup button:nth-child(1){
+      background:linear-gradient(135deg,#4caf50,#2e7d32);
+    }
+
+    .actionGroup button:nth-child(2){
+      background:linear-gradient(135deg,#ff9800,#ef6c00);
+    }
+
+    .backBtn{
+      grid-column:span 2;
+      background:linear-gradient(135deg,#9e9e9e,#616161) !important;
+    }
+
+    .confirmBtn{
+      margin-top:15px;
+      padding:12px 25px;
+      border:none;
+      border-radius:10px;
+      background:linear-gradient(135deg,#42a5f5,#1e88e5);
+      color:white;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    .method{
+      margin-top:10px;
+      font-weight:bold;
+    }
+
+    #methodText, #loginMethod, #paymentModeText{
+      color:#1e88e5;
+    }
+
+    .hidden{
+      display:none;
+    }
+
+    .noteText{
+      margin-top:8px;
+      color:#444;
+      font-weight:bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="titleBox">
+    <h1>Hệ thống tủ đồ thông minh</h1>
+  </div>
+
+  <div id="lockerStatus" class="container"></div>
+
+  <!-- CHỌN HÌNH THỨC -->
+  <div id="modeForm" class="hidden">
+    <h2 id="modeTitle"></h2>
+
+    <div class="actionGroup">
+      <button onclick="selectPaidMode()">Trả phí</button>
+      <button onclick="selectFreeMode()">Không trả phí</button>
+      <button class="backBtn" onclick="goHome()">Quay lại</button>
+    </div>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="registerForm" class="hidden">
+    <h2 id="lockerTitle"></h2>
+
+    <div class="method">
+      Hình thức: <span id="paymentModeText"></span>
+    </div>
+
+    <div class="method">
+      Phương thức: <span id="methodText"></span>
+    </div>
+
+    <div class="actionGroup">
+      <button onclick="selectPin()">Mã PIN</button>
+      <button onclick="selectFace()">Nhận diện khuôn mặt</button>
+      <button class="backBtn" onclick="backToMode()">Quay lại</button>
+    </div>
+
+    <div id="pinArea" class="hidden">
+      <input id="registerPin1" type="password" maxlength="4" placeholder="Nhập PIN 4 số" />
+      <input id="registerPin2" type="password" maxlength="4" placeholder="Xác nhận PIN" />
+      <br />
+      <button class="confirmBtn" onclick="confirmRegister()">Xác nhận</button>
+    </div>
+
+    <div id="faceArea" class="hidden">
+      <div class="noteText" id="faceNote">Nhấn xác nhận để tiếp tục</div>
+      <br />
+      <button class="confirmBtn" onclick="confirmRegister()">Xác nhận</button>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="loginForm" class="hidden">
+    <h2 id="loginTitle"></h2>
+
+    <div class="method">
+      Phương thức đã đăng ký: <span id="loginMethod"></span>
+    </div>
+
+    <div class="actionGroup">
+      <button onclick="loginPin()">Mã PIN</button>
+      <button onclick="loginFace()">Nhận diện khuôn mặt</button>
+      <button class="backBtn" onclick="goHome()">Quay lại</button>
+    </div>
+
+    <div id="loginPinArea" class="hidden">
+      <input id="loginPinInput" type="password" maxlength="4" placeholder="Nhập PIN 4 số" />
+      <br />
+      <button class="confirmBtn" onclick="openLocker()">Mở tủ</button>
+    </div>
+  </div>
+
+  <script>
+    let lockerStatus = {};
+    let lockerData = {};
+    let selectedLocker = 0;
+    let selectedPaymentMode = "";
+
+    for (let i = 1; i <= 8; i++) {
+      lockerStatus[i] = 0;
+      lockerData[i] = null;
+    }
+
+    function loadLocalData() {
+      const savedLockerData = JSON.parse(localStorage.getItem("lockerData") || "{}");
+      const savedLockerStatus = JSON.parse(localStorage.getItem("lockerStatus") || "{}");
+
+      for (let i = 1; i <= 8; i++) {
+        if (savedLockerData[i] !== undefined) {
+          lockerData[i] = savedLockerData[i];
+        }
+        if (savedLockerStatus[i] !== undefined) {
+          lockerStatus[i] = savedLockerStatus[i];
+        }
+      }
+    }
+
+    function saveLocalData() {
+      localStorage.setItem("lockerData", JSON.stringify(lockerData));
+      localStorage.setItem("lockerStatus", JSON.stringify(lockerStatus));
+    }
+
+    function renderStatus() {
+      let html = "";
+
+      for (let i = 1; i <= 8; i++) {
+        html += `
+          <div class="locker ${lockerStatus[i] == 0 ? "free" : "busy"}"
+               onclick="handleLockerClick(${i})">
+            Tủ ${i}
+          </div>
+        `;
+      }
+
+      document.getElementById("lockerStatus").innerHTML = html;
+    }
+
+    async function syncLockerUiStateFromServer() {
+      try {
+        const res = await fetch("/locker-ui-state");
+        const data = await res.json();
+
+        if (!data.ok || !data.items) return;
+
+        for (let i = 1; i <= 8; i++) {
+          const state = data.items[i];
+
+          if (!state) continue;
+
+          if (state.status === "busy") {
+            lockerStatus[i] = 1;
+          } else {
+            lockerStatus[i] = 0;
+            lockerData[i] = null;
+          }
+        }
+
+        saveLocalData();
+        renderStatus();
+      } catch (err) {
+        console.log("Lỗi syncLockerUiStateFromServer:", err);
+      }
+    }
+
+    function resetForms() {
+      document.getElementById("paymentModeText").innerHTML = "";
+      document.getElementById("methodText").innerHTML = "";
+      document.getElementById("loginMethod").innerHTML = "";
+      document.getElementById("loginPinInput").value = "";
+      document.getElementById("registerPin1").value = "";
+      document.getElementById("registerPin2").value = "";
+
+      document.getElementById("pinArea").classList.add("hidden");
+      document.getElementById("faceArea").classList.add("hidden");
+      document.getElementById("loginPinArea").classList.add("hidden");
+    }
+
+    function goHome() {
+      document.getElementById("lockerStatus").style.display = "grid";
+      document.getElementById("modeForm").classList.add("hidden");
+      document.getElementById("registerForm").classList.add("hidden");
+      document.getElementById("loginForm").classList.add("hidden");
+      resetForms();
+      selectedLocker = 0;
+      selectedPaymentMode = "";
+    }
+
+    function backToMode() {
+      resetForms();
+      document.getElementById("registerForm").classList.add("hidden");
+      document.getElementById("modeForm").classList.remove("hidden");
+    }
+
+    loadLocalData();
+
+    const params = new URLSearchParams(window.location.search);
+    const paidLocker = params.get("paid");
+
+    if (paidLocker) {
+      lockerStatus[paidLocker] = 1;
+
+      const pendingRaw = localStorage.getItem("pendingLockerData");
+      if (pendingRaw) {
+        const pending = JSON.parse(pendingRaw);
+
+        if (String(pending.locker) === String(paidLocker)) {
+          lockerData[paidLocker] = {
+            method: pending.method,
+            pin: pending.pin || "",
+            paymentMode: pending.paymentMode || "paid"
+          };
+          localStorage.removeItem("pendingLockerData");
+        }
+      }
+
+      saveLocalData();
+      fetch("/admin-set-busy/" + paidLocker, { method: "POST" });
+      window.history.replaceState({}, document.title, "/");
+    }
+
+    renderStatus();
+    syncLockerUiStateFromServer();
+    setInterval(syncLockerUiStateFromServer, 2000);
+
+    function handleLockerClick(num) {
+      selectedLocker = num;
+      resetForms();
+
+      document.getElementById("lockerStatus").style.display = "none";
+
+      if (lockerStatus[num] == 0) {
+        document.getElementById("modeForm").classList.remove("hidden");
+        document.getElementById("registerForm").classList.add("hidden");
+        document.getElementById("loginForm").classList.add("hidden");
+        document.getElementById("modeTitle").innerHTML = "Chọn hình thức cho Tủ " + num;
+      } else {
+        document.getElementById("loginForm").classList.remove("hidden");
+        document.getElementById("modeForm").classList.add("hidden");
+        document.getElementById("registerForm").classList.add("hidden");
+        document.getElementById("loginTitle").innerHTML = "Mở Tủ " + num;
+
+        const data = lockerData[num];
+        if (data) {
+          document.getElementById("loginMethod").innerHTML = data.method;
+        } else {
+          document.getElementById("loginMethod").innerHTML = "";
+        }
+      }
+    }
+
+    function selectPaidMode() {
+      selectedPaymentMode = "paid";
+      document.getElementById("modeForm").classList.add("hidden");
+      document.getElementById("registerForm").classList.remove("hidden");
+      document.getElementById("lockerTitle").innerHTML = "Đăng ký Tủ " + selectedLocker;
+      document.getElementById("paymentModeText").innerHTML = "Trả phí";
+      document.getElementById("faceNote").innerHTML = "Nhấn xác nhận để chuyển sang bước thanh toán";
+    }
+
+    function selectFreeMode() {
+      selectedPaymentMode = "free";
+      document.getElementById("modeForm").classList.add("hidden");
+      document.getElementById("registerForm").classList.remove("hidden");
+      document.getElementById("lockerTitle").innerHTML = "Đăng ký Tủ " + selectedLocker;
+      document.getElementById("paymentModeText").innerHTML = "Không trả phí";
+      document.getElementById("faceNote").innerHTML = "Nhấn xác nhận để mở tủ ngay";
+    }
+
+    function selectPin() {
+      document.getElementById("methodText").innerHTML = "Mã PIN";
+      document.getElementById("pinArea").classList.remove("hidden");
+      document.getElementById("faceArea").classList.add("hidden");
+    }
+
+    function selectFace() {
+      document.getElementById("methodText").innerHTML = "Nhận diện khuôn mặt";
+      document.getElementById("pinArea").classList.add("hidden");
+      document.getElementById("faceArea").classList.remove("hidden");
+    }
+
+    async function confirmRegister() {
+      const method = document.getElementById("methodText").innerHTML.trim();
+
+      if (selectedPaymentMode === "") {
+        alert("Chọn hình thức trước!");
+        return;
+      }
+
+      if (method === "") {
+        alert("Chọn phương thức trước!");
+        return;
+      }
+
+      let pin = "";
+
+      if (method === "Mã PIN") {
+        const pin1 = document.getElementById("registerPin1").value.trim();
+        const pin2 = document.getElementById("registerPin2").value.trim();
+
+        if (pin1 === "" || pin2 === "") {
+          alert("Nhập đầy đủ mã PIN!");
+          return;
+        }
+
+        if (!/^[0-9]{4}$/.test(pin1) || !/^[0-9]{4}$/.test(pin2)) {
+          alert("PIN phải đúng 4 số!");
+          return;
+        }
+
+        if (pin1 !== pin2) {
+          alert("PIN không khớp!");
+          return;
+        }
+
+        pin = pin1;
+      }
+
+      const pendingData = {
+        locker: selectedLocker,
+        method: method,
+        pin: pin,
+        paymentMode: selectedPaymentMode
+      };
+
+      if (selectedPaymentMode === "paid") {
+        localStorage.setItem("pendingLockerData", JSON.stringify(pendingData));
+        window.location.href = "/qr?locker=" + selectedLocker;
+        return;
+      }
+
+      if (selectedPaymentMode === "free") {
+        try {
+          const res = await fetch("/open-locker/" + selectedLocker);
+          const text = await res.text();
+          alert("🔓 " + text);
+
+          lockerStatus[selectedLocker] = 1;
+          lockerData[selectedLocker] = {
+            method: method,
+            pin: pin,
+            paymentMode: "free"
+          };
+
+          await fetch("/admin-set-busy/" + selectedLocker, { method: "POST" });
+
+          saveLocalData();
+          renderStatus();
+          goHome();
+        } catch (err) {
+          alert("Lỗi mở tủ!");
+        }
+      }
+    }
+
+    function loginPin() {
+      const data = lockerData[selectedLocker];
+
+      if (!data) {
+        alert("Không tìm thấy dữ liệu!");
+        return;
+      }
+
+      if (data.method !== "Mã PIN") {
+        alert("Tủ này không dùng PIN!");
+        return;
+      }
+
+      document.getElementById("loginMethod").innerHTML = "Mã PIN";
+      document.getElementById("loginPinArea").classList.remove("hidden");
+    }
+
+    async function loginFace() {
+      const data = lockerData[selectedLocker];
+
+      if (!data) {
+        alert("Không tìm thấy dữ liệu!");
+        return;
+      }
+
+      if (data.method !== "Nhận diện khuôn mặt") {
+        alert("Tủ này không dùng Face!");
+        return;
+      }
+
+      try {
+        const res = await fetch("/open-locker/" + selectedLocker);
+        const text = await res.text();
+        alert("🔓 " + text);
+
+        lockerStatus[selectedLocker] = 0;
+        lockerData[selectedLocker] = null;
+        saveLocalData();
+        await fetch("/admin-reset/" + selectedLocker, { method: "POST" });
+        renderStatus();
+        goHome();
+      } catch (err) {
+        alert("Lỗi mở tủ!");
+      }
+    }
+
+    async function openLocker() {
+      const inputPin = document.getElementById("loginPinInput").value.trim();
+      const data = lockerData[selectedLocker];
+
+      if (!data) {
+        alert("Không tìm thấy dữ liệu!");
+        return;
+      }
+
+      if (data.method !== "Mã PIN") {
+        alert("Tủ này không dùng PIN!");
+        return;
+      }
+
+      if (inputPin === "") {
+        alert("Nhập mã PIN!");
+        return;
+      }
+
+      if (!/^[0-9]{4}$/.test(inputPin)) {
+        alert("PIN phải đúng 4 số!");
+        return;
+      }
+
+      if (inputPin !== data.pin) {
+        alert("Sai mã PIN!");
+        return;
+      }
+
+      try {
+        const res = await fetch("/open-locker/" + selectedLocker);
+        const text = await res.text();
+        alert("🔓 " + text);
+
+        lockerStatus[selectedLocker] = 0;
+        lockerData[selectedLocker] = null;
+        saveLocalData();
+        await fetch("/admin-reset/" + selectedLocker, { method: "POST" });
+        renderStatus();
+        goHome();
+      } catch (err) {
+        alert("Lỗi mở tủ!");
+      }
+
+      document.getElementById("loginPinInput").value = "";
+    }
+  </script>
+</body>
+</html>
