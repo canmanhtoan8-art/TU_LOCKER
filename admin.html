@@ -3,33 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin quản lý 8 tủ</title>
+  <title>Admin quản lý tủ</title>
   <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
+    details summary {
+    font-size: 22px;      /* chữ Tủ 1 - 0 giao dịch to hơn */
+    font-weight: 700;
+    padding: 18px 24px;
+    cursor: pointer;
+}
+
+details summary::marker {
+    font-size: 1.8em;     /* phóng to dấu tam giác */
+}
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      margin: 0;
-      font-family: "Segoe UI", Arial, sans-serif;
       min-height: 100vh;
-      color: #e2e8f0;
+      font-family: "Inter", sans-serif;
+      color: #0f172a;
       background:
-        radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 28%),
-        radial-gradient(circle at top right, rgba(168, 85, 247, 0.10), transparent 24%),
-        linear-gradient(135deg, #0f172a, #162338 45%, #1e293b 100%);
+        radial-gradient(circle at top left, rgba(20, 184, 166, 0.22), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.16), transparent 34%),
+        linear-gradient(135deg, #ecfeff, #f8fafc 50%, #e0f2fe);
     }
 
     .hidden {
       display: none !important;
-    }
-
-    .wrap {
-      max-width: 1220px;
-      margin: 0 auto;
-      padding: 28px 20px 40px;
     }
 
     /* LOGIN */
@@ -38,221 +46,381 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 24px;
     }
 
     .login-card {
       width: 100%;
       max-width: 430px;
-      background: rgba(30, 41, 59, 0.92);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 24px;
-      padding: 28px 24px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
-      backdrop-filter: blur(10px);
+      padding: 34px 28px;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(255,255,255,0.75);
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
+      backdrop-filter: blur(18px);
     }
 
-    .login-icon {
-      width: 68px;
-      height: 68px;
-      margin: 0 auto 16px;
-      border-radius: 20px;
+    .login-logo {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 18px;
+      border-radius: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, rgba(59,130,246,0.22), rgba(34,197,94,0.18));
-      color: #e2e8f0;
-      font-size: 30px;
-      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 34px;
+      color: white;
+      background: linear-gradient(135deg, #14b8a6, #2563eb);
+      box-shadow: 0 14px 32px rgba(37, 99, 235, 0.24);
     }
 
     .login-card h1 {
-      margin: 0 0 22px;
       text-align: center;
       font-size: 30px;
-      color: #f8fafc;
-      font-weight: 800;
+      font-weight: 850;
+      margin-bottom: 8px;
     }
 
-    .login-card input {
+    .login-card p {
+      text-align: center;
+      color: #64748b;
+      margin-bottom: 26px;
+      font-weight: 600;
+    }
+
+    .input-box {
+      position: relative;
+      margin-bottom: 15px;
+    }
+
+    .input-box i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #64748b;
+      font-size: 19px;
+    }
+
+    .input-box input {
       width: 100%;
-      padding: 14px 14px;
-      margin-bottom: 14px;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
+      padding: 15px 15px 15px 44px;
+      border: 1px solid #dbeafe;
+      border-radius: 16px;
       font-size: 15px;
       outline: none;
-      background: rgba(248, 250, 252, 0.95);
       color: #0f172a;
+      background: rgba(255,255,255,0.92);
+      transition: 0.22s;
     }
 
-    .login-card input:focus {
-      border-color: rgba(59,130,246,0.8);
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.16);
+    .input-box input:focus {
+      border-color: #14b8a6;
+      box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15);
     }
 
     .login-card button {
       width: 100%;
       border: none;
-      border-radius: 14px;
-      padding: 14px;
-      font-size: 15px;
-      font-weight: 700;
+      margin-top: 8px;
+      padding: 15px;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 800;
       cursor: pointer;
       color: white;
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      background: linear-gradient(135deg, #14b8a6, #2563eb);
+      box-shadow: 0 14px 30px rgba(37, 99, 235, 0.22);
       transition: 0.22s;
-      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.28);
     }
 
     .login-card button:hover {
-      transform: translateY(-1px);
-      opacity: 0.96;
+      transform: translateY(-2px);
+      filter: brightness(1.03);
     }
 
     .login-message {
-      margin-top: 14px;
-      min-height: 20px;
+      min-height: 22px;
+      margin-top: 16px;
       text-align: center;
-      color: #cbd5e1;
-      font-weight: 600;
+      color: #ef4444;
+      font-weight: 700;
     }
 
     /* ADMIN */
+    .layout {
+      width: 100%;
+      min-height: 100vh;
+      padding: 28px;
+    }
+
+    .dashboard {
+      max-width: 1250px;
+      margin: 0 auto;
+    }
+
     .topbar {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 22px;
     }
 
-    .header-title {
-      margin: 0;
-      font-size: 36px;
-      font-weight: 800;
-      color: #f8fafc;
-      letter-spacing: 0.2px;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
 
-    .header-sub {
-      margin-top: 8px;
-      color: #94a3b8;
-      font-size: 15px;
-      font-weight: 500;
-    }
-
-    .logout-btn {
-      border: none;
-      border-radius: 12px;
-      padding: 11px 16px;
-      font-weight: 700;
-      cursor: pointer;
+    .brand-icon {
+      width: 62px;
+      height: 62px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
       color: white;
-      background: linear-gradient(135deg, #64748b, #475569);
-      box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+      background: linear-gradient(135deg, #14b8a6, #2563eb);
+      box-shadow: 0 14px 30px rgba(37, 99, 235, 0.22);
+    }
+
+    .brand h1 {
+      font-size: 34px;
+      line-height: 1.1;
+      font-weight: 900;
+      color: #0f172a;
+    }
+
+    .brand p {
+      margin-top: 6px;
+      font-weight: 650;
+      color: #000;
+    }
+
+    .logout-btn,
+    .detail-btn {
+      border: none;
+      border-radius: 18px;
+      padding: 16px 26px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      color: #0f172a;
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(255,255,255,0.9);
+      box-shadow: 0 12px 28px rgba(15,23,42,0.12);
       transition: 0.22s;
     }
 
-    .logout-btn:hover {
-      transform: translateY(-1px);
-      opacity: 0.95;
+    .detail-btn {
+      color: white;
+      background: linear-gradient(135deg, #14b8a6, #2563eb);
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logout-btn:hover,
+    .detail-btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.03);
     }
 
     .message {
       margin-bottom: 22px;
-      padding: 15px 16px;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.07);
-      font-weight: 600;
-      color: #dbeafe;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+      padding: 16px 18px;
+      border-radius: 18px;
+      color: #000;
+      font-weight: 800;
+      background: rgba(224, 242, 254, 0.8);
+      border: 1px solid rgba(125, 211, 252, 0.8);
+    }
+
+    .revenue-section {
+      margin-bottom: 24px;
+    }
+
+    .revenue-summary {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(255,255,255,0.9);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: 0 16px 42px rgba(15,23,42,0.1);
+      backdrop-filter: blur(16px);
+    }
+
+    .stat-card span {
+      display: block;
+      color: #64748b;
+      font-weight: 750;
+      margin-bottom: 8px;
+    }
+
+    .stat-card strong {
+      font-size: 30px;
+      color: #0f172a;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 18px 0 12px;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #0f172a;
+    }
+
+    .table-box {
+      overflow-x: auto;
+      background: rgba(255,255,255,0.82);
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(15,23,42,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 13px 14px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 14px;
+    }
+
+    th {
+      background: #e0f2fe;
+      font-weight: 900;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(220px, 1fr));
+      grid-template-columns: repeat(4, minmax(240px, 1fr));
       gap: 20px;
     }
 
     .locker-card {
-      background: linear-gradient(145deg, rgba(30,41,59,0.96), rgba(15,23,42,0.96));
-      border-radius: 22px;
-      padding: 22px 18px 18px;
-      text-align: center;
-      box-shadow: 0 16px 40px rgba(0,0,0,0.38);
-      border: 1px solid rgba(255,255,255,0.05);
-      transition: 0.25s ease;
       position: relative;
       overflow: hidden;
+      padding: 22px 16px 18px;
+      border-radius: 26px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(255,255,255,0.95);
+      box-shadow: 0 18px 46px rgba(15, 23, 42, 0.12);
+      backdrop-filter: blur(16px);
+      transition: 0.25s;
     }
 
     .locker-card::before {
       content: "";
       position: absolute;
-      top: 0;
-      left: 16px;
-      right: 16px;
-      height: 3px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #60a5fa, #22c55e, #a78bfa);
-      opacity: 0.85;
+      inset: 0 0 auto 0;
+      height: 5px;
+      background: linear-gradient(90deg, #14b8a6, #38bdf8, #2563eb);
     }
 
     .locker-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 24px 50px rgba(0,0,0,0.48);
+      transform: translateY(-6px);
+      box-shadow: 0 26px 58px rgba(15, 23, 42, 0.17);
+    }
+
+    .locker-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 22px;
+      min-height: 116px;
+    }
+
+    .locker-left {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex-shrink: 0;
     }
 
     .locker-icon {
-      width: 64px;
-      height: 64px;
-      margin: 4px auto 14px;
+      width: 62px;
+      height: 62px;
       border-radius: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(168,85,247,0.16));
-      border: 1px solid rgba(255,255,255,0.06);
-      color: #cbd5e1;
-      font-size: 30px;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+      color: #0f766e;
+      font-size: 31px;
+      background: #ccfbf1;
+      border: 1px solid #99f6e4;
     }
 
     .locker-name {
-      font-size: 24px;
-      font-weight: 800;
-      margin-bottom: 18px;
-      color: #f8fafc;
+      font-size: 34px;
+      font-weight: 900;
+      color: #000;
+      margin: 0;
+      line-height: 1;
+      white-space: nowrap;
     }
 
-    button.action-btn {
-      border: none;
-      border-radius: 12px;
-      padding: 13px 12px;
-      font-weight: 700;
-      cursor: pointer;
+    .locker-revenue-info {
+      text-align: right;
+      font-weight: 900;
+      line-height: 1.7;
+      color: #0f172a;
+      padding-top: 6px;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .locker-revenue-info .revenue {
+      font-size: 16px;
+    }
+
+    .locker-revenue-info .count {
+      font-size: 15px;
+    }
+
+    .action-btn {
       width: 100%;
-      margin-bottom: 11px;
+      border: none;
+      border-radius: 15px;
+      padding: 14px 12px;
+      margin-top: 10px;
+      cursor: pointer;
       color: white;
-      transition: 0.22s ease;
-      font-size: 14px;
+      font-weight: 850;
+      font-size: 15px;
+      transition: 0.22s;
     }
 
-    button.action-btn:hover {
-      transform: scale(1.02);
+    .action-btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.04);
     }
 
     .btn-open {
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      box-shadow: 0 10px 22px rgba(34,197,94,0.18);
+      background: linear-gradient(135deg, #10b981, #059669);
+      box-shadow: 0 12px 24px rgba(16, 185, 129, 0.22);
     }
 
     .btn-reset {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      box-shadow: 0 10px 22px rgba(239,68,68,0.16);
+      background: linear-gradient(135deg, #f43f5e, #dc2626);
+      box-shadow: 0 12px 24px rgba(244, 63, 94, 0.2);
     }
 
     .btn-label {
@@ -262,23 +430,76 @@
       gap: 8px;
     }
 
-    @media (max-width: 980px) {
+    /* DETAIL PAGE INSIDE ADMIN */
+    .detail-list {
+      display: grid;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .detail-box {
+      overflow: hidden;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.86);
+      box-shadow: 0 12px 30px rgba(15,23,42,0.1);
+      border: 1px solid rgba(255,255,255,0.9);
+    }
+
+    .detail-box summary {
+      padding: 17px 20px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 900;
+      background: #e0f2fe;
+      color: #0f172a;
+    }
+
+    .detail-table-wrap {
+      overflow-x: auto;
+    }
+
+    .detail-empty {
+      padding: 16px 20px;
+      font-weight: 800;
+      color: #64748b;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    @media (max-width: 1020px) {
       .grid {
         grid-template-columns: repeat(2, 1fr);
       }
-    }
 
-    @media (max-width: 560px) {
-      .grid {
+      .revenue-summary {
         grid-template-columns: 1fr;
       }
+    }
 
-      .header-title {
-        font-size: 30px;
+    @media (max-width: 620px) {
+      .layout {
+        padding: 18px;
       }
 
       .topbar {
         align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .brand h1 {
+        font-size: 28px;
+      }
+
+      .logout-btn {
+        width: 100%;
+      }
+
+      .section-header {
+        align-items: flex-start;
+        flex-direction: column;
       }
     }
   </style>
@@ -288,33 +509,218 @@
   <!-- LOGIN -->
   <div id="loginView" class="login-shell">
     <div class="login-card">
-      <div class="login-icon">
+      <div class="login-logo">
         <i class="ri-shield-keyhole-line"></i>
       </div>
+
       <h1>Đăng nhập Admin</h1>
-      <input id="username" type="text" placeholder="Tên đăng nhập" />
-      <input id="password" type="password" placeholder="Mật khẩu" />
-      <button onclick="loginAdmin()">Đăng nhập</button>
+      <p>Hệ thống quản lý tủ giữ đồ thông minh</p>
+
+      <div class="input-box">
+        <i class="ri-user-line"></i>
+        <input id="username" type="text" placeholder="Tên đăng nhập" />
+      </div>
+
+      <div class="input-box">
+        <i class="ri-lock-password-line"></i>
+        <input id="password" type="password" placeholder="Mật khẩu" />
+      </div>
+
+      <button onclick="loginAdmin()">
+        <i class="ri-login-box-line"></i>
+        Đăng nhập
+      </button>
+
       <div id="loginMessage" class="login-message"></div>
     </div>
   </div>
 
   <!-- ADMIN -->
   <div id="adminView" class="hidden">
-    <div class="wrap">
-      <div class="topbar">
-        <div>
-          <h1 class="header-title">Quản lý 8 tủ</h1>
-        </div>
-        <button class="logout-btn" onclick="logoutAdmin()">Đăng xuất</button>
-      </div>
+    <div class="layout">
+      <div class="dashboard">
+        <div class="topbar">
+          <div class="brand">
+            <div class="brand-icon">
+              <i class="ri-dashboard-3-line"></i>
+            </div>
+            <div>
+              <h1>Quản lý 8 tủ</h1>
+              <p>Bảng điều khiển dành cho quản trị viên</p>
+            </div>
+          </div>
 
-      <div id="message" class="message">Sẵn sàng</div>
-      <div id="lockerGrid" class="grid"></div>
+          <button class="logout-btn" onclick="logoutAdmin()">
+            <i class="ri-logout-box-r-line"></i>
+            Đăng xuất
+          </button>
+        </div>
+
+        <div id="message" class="message">Sẵn sàng thao tác</div>
+
+        <div id="adminPage">
+          <div class="revenue-section">
+            <div class="revenue-summary">
+              <div class="stat-card">
+                <span>Doanh thu hôm nay</span>
+                <strong id="todayRevenue">0đ</strong>
+              </div>
+
+              <div class="stat-card">
+                <span>Số lần trả phí hôm nay</span>
+                <strong id="todayCount">0</strong>
+              </div>
+            </div>
+
+            <div class="section-header">
+              <h2 class="section-title">Thông tin chuyển khoản hôm nay</h2>
+
+              <button class="detail-btn" onclick="showDetailPage()">
+                <i class="ri-list-check-2"></i>
+                Chi tiết
+              </button>
+            </div>
+
+            
+          </div>
+
+          <div id="lockerGrid" class="grid"></div>
+        </div>
+
+        <div id="detailPage" class="hidden">
+          <div class="section-header">
+            <h2 class="section-title">Chi tiết giao dịch từng tủ hôm nay</h2>
+
+            <button class="detail-btn" onclick="showAdminPage()">
+              <i class="ri-arrow-left-line"></i>
+              Quay lại
+            </button>
+          </div>
+
+          <div id="lockerTransactionDetail" class="detail-list"></div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
+    let latestRevenueData = null;
+
+    function formatMoney(value) {
+      return Number(value || 0).toLocaleString("vi-VN") + "đ";
+    }
+
+    async function loadRevenueToday() {
+      try {
+        const res = await fetch("/admin-revenue-today");
+        const data = await res.json();
+
+        if (!data.ok) return;
+
+        latestRevenueData = data;
+
+        document.getElementById("todayRevenue").innerText = formatMoney(data.totalRevenue);
+        document.getElementById("todayCount").innerText = data.totalCount;
+
+        for (let i = 1; i <= 8; i++) {
+          const item = data.lockers[i] || { revenue: 0, count: 0 };
+          const box = document.getElementById("lockerRevenue" + i);
+
+          if (box) {
+            box.innerHTML = `
+              <div class="revenue">Doanh thu: ${formatMoney(item.revenue)}</div>
+              <div class="count">Số lần giao dịch: ${item.count} lần</div>
+            `;
+          }
+        }
+
+        const rows = data.transactions.map(tx => `
+          <tr>
+            <td>${tx.dateTime}</td>
+            <td>Tủ ${tx.lockerId}</td>
+            <td>${formatMoney(tx.amount)}</td>
+            <td>${tx.stkDoiUng}</td>
+            <td>${tx.desc}</td>
+          </tr>
+        `).join("");
+
+        document.getElementById("transactionBody").innerHTML =
+          rows || `<tr><td colspan="5">Hôm nay chưa có giao dịch</td></tr>`;
+
+        if (!document.getElementById("detailPage").classList.contains("hidden")) {
+          renderTransactionDetail();
+        }
+
+      } catch (err) {
+        console.log("Lỗi loadRevenueToday:", err);
+      }
+    }
+
+    function showDetailPage() {
+      document.getElementById("adminPage").classList.add("hidden");
+      document.getElementById("detailPage").classList.remove("hidden");
+      renderTransactionDetail();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function showAdminPage() {
+      document.getElementById("detailPage").classList.add("hidden");
+      document.getElementById("adminPage").classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function renderTransactionDetail() {
+      if (!latestRevenueData) return;
+
+      let html = "";
+
+      for (let i = 1; i <= 8; i++) {
+        const list = latestRevenueData.transactions.filter(tx => String(tx.lockerId) === String(i));
+
+        let body = "";
+
+        if (list.length === 0) {
+          body = `<div class="detail-empty">Hôm nay chưa có giao dịch</div>`;
+        } else {
+          body = `
+            <div class="detail-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Mã GD</th>
+                    <th>Thời gian</th>
+                    <th>Giá trị</th>
+                    <th>STK khách hàng</th>
+                    <th>Nội dung</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${list.map(tx => `
+                    <tr>
+                      <td>${tx.maGD || ""}</td>
+                      <td>${tx.dateTime}</td>
+                      <td>${formatMoney(tx.amount)}</td>
+                      <td>${tx.stkDoiUng}</td>
+                      <td>${tx.desc}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
+
+        html += `
+          <details class="detail-box">
+            <summary>Tủ ${i} - ${list.length} giao dịch</summary>
+            ${body}
+          </details>
+        `;
+      }
+
+      document.getElementById("lockerTransactionDetail").innerHTML = html;
+    }
+
     function setMessage(text) {
       document.getElementById("message").innerText = text;
     }
@@ -338,7 +744,7 @@
       const password = document.getElementById("password").value.trim();
 
       if (!username || !password) {
-        setLoginMessage("Nhập đầy đủ tài khoản và mật khẩu");
+        setLoginMessage("Vui lòng nhập đầy đủ tài khoản và mật khẩu");
         return;
       }
 
@@ -361,6 +767,7 @@
         sessionStorage.setItem("admin_logged_in", "true");
         showAdminView();
         initAdmin();
+
       } catch (err) {
         console.log(err);
         setLoginMessage("Lỗi kết nối server");
@@ -369,6 +776,7 @@
 
     function logoutAdmin() {
       sessionStorage.removeItem("admin_logged_in");
+      showAdminPage();
       showLoginView();
       setLoginMessage("");
       document.getElementById("password").value = "";
@@ -377,11 +785,20 @@
     function renderLockers(items) {
       const html = items.map(item => `
         <div class="locker-card">
-          <div class="locker-icon">
-            <i class="ri-lock-2-line"></i>
-          </div>
+          <div class="locker-top">
+            <div class="locker-left">
+              <div class="locker-icon">
+                <i class="ri-door-lock-line"></i>
+              </div>
 
-          <div class="locker-name">Tủ ${item.id}</div>
+              <div class="locker-name">Tủ ${item.id}</div>
+            </div>
+
+            <div class="locker-revenue-info" id="lockerRevenue${item.id}">
+              <div class="revenue">Doanh thu: 0đ</div>
+              <div class="count">Số lần giao dịch: 0 lần</div>
+            </div>
+          </div>
 
           <button class="action-btn btn-open" onclick="openLocker(${item.id})">
             <span class="btn-label">
@@ -409,33 +826,41 @@
 
         if (data.ok) {
           renderLockers(data.items || []);
+          setMessage("Đã tải danh sách tủ thành công");
+        } else {
+          setMessage("Không lấy được dữ liệu tủ");
         }
+
       } catch (err) {
         console.log(err);
         setMessage("Không tải được danh sách tủ");
       }
+
+      loadRevenueToday();
     }
 
     async function openLocker(id) {
       try {
         await fetch("/admin-open/" + id, { method: "POST" });
-        setMessage("Đã mở tủ " + id);
+        setMessage("Đã gửi lệnh mở tủ " + id);
       } catch (err) {
-        setMessage("Lỗi mở tủ");
+        setMessage("Lỗi mở tủ " + id);
       }
     }
 
     async function resetLocker(id) {
       try {
         await fetch("/admin-reset/" + id, { method: "POST" });
-        setMessage("Đã reset tủ " + id);
+        setMessage("Đã xóa trạng thái tủ " + id);
       } catch (err) {
-        setMessage("Lỗi reset");
+        setMessage("Lỗi reset tủ");
       }
     }
 
     window.onload = function () {
       const isLoggedIn = sessionStorage.getItem("admin_logged_in");
+
+      setInterval(loadRevenueToday, 5000);
 
       if (isLoggedIn === "true") {
         showAdminView();

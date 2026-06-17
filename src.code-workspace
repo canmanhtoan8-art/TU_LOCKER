@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "../toan_can/src"
+		},
+		{
+			"name": "toan_can",
+			"path": "../toan_can"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {}
+}

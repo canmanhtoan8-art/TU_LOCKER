@@ -78,6 +78,7 @@ function buildQrImageUrl({ amount, content }) {
   );
 }
 
+
 function normalizeText(value) {
   return String(value || "").trim();
 }
@@ -483,6 +484,7 @@ setInterval(async () => {
       });
 
       await openLockerHardware(order.lockerId);
+      
     }
   } catch (err) {
     console.error("❌ Lỗi đọc sheet:", err);
@@ -777,6 +779,70 @@ app.delete("/locker-data/:id", async (req, res) => {
   }
 });
 /* ================= RUN ================= */
+app.get("/admin-revenue-today", async (req, res) => {
+  try {
+    const result = await fetchSheetJson();
+
+    if (!result || !Array.isArray(result.data)) {
+      return res.json({ ok: false, message: "Không đọc được Sheet" });
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    const lockers = {};
+    for (let i = 1; i <= 8; i++) {
+      lockers[i] = { revenue: 0, count: 0 };
+    }
+
+    const transactions = [];
+
+    result.data.forEach(row => {
+      const maGD = row["Mã GD"] || row["Ma GD"] || row["Mã giao dịch"] || "";
+      const desc = row["Mô tả"] || row["Mo ta"] || row["Nội dung"] || "";
+      const amount = Number(
+      String(row["Giá trị"] || row["Gia tri"] || row["Số tiền"] || 0)
+        .replace(/\./g, "")
+        .replace(",", ".")
+        .replace(/[^\d.-]/g, "")
+    );
+      const dateTime = row["Ngày diễn ra"] || row["Ngay dien ra"] || row["Thời gian"] || "";
+      const stkDoiUng = row["Số tài khoản đối ứng"] || row["So tai khoan doi ung"] || "";
+
+      const dateOnly = String(dateTime).slice(0, 10);
+      const match = String(desc).match(/TU([1-8])/i);
+
+      if (dateOnly !== today || !match) return;
+
+      const lockerId = match[1];
+
+      lockers[lockerId].revenue += amount;
+      lockers[lockerId].count += 1;
+
+      transactions.push({
+        maGD,
+        lockerId,
+        desc,
+        amount,
+        dateTime,
+        stkDoiUng
+      });
+    });
+
+    const totalRevenue = Object.values(lockers).reduce((sum, item) => sum + item.revenue, 0);
+    const totalCount = Object.values(lockers).reduce((sum, item) => sum + item.count, 0);
+
+    res.json({
+      ok: true,
+      totalRevenue,
+      totalCount,
+      lockers,
+      transactions
+    });
+  } catch (error) {
+    console.error("Lỗi admin-revenue-today:", error);
+    res.status(500).json({ ok: false });
+  }
+});
 app.listen(port, () => {
   console.log("🚀 Server chạy tại: http://localhost:" + port);
   console.log("🧰 Hardware locker map:", HARDWARE_LOCKER_MAP);
