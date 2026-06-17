@@ -4,6 +4,8 @@ const express = require("express");
 const admin = require("firebase-admin");
 const path = require("path");
 const fetch = require("node-fetch");
+const { spawn } = require("child_process");
+const { SerialPort } = require("serialport");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -14,6 +16,12 @@ console.log("📄 SHEET_API_URL:", SHEET_API_URL);
 /* ================= PARSE BODY ================= */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+/* ================= NGROK BYPASS ================= */
+app.use((req, res, next) => {
+  res.setHeader("ngrok-skip-browser-warning", "true");
+  next();
+});
 
 /* ================= FIREBASE ================= */
 const serviceAccount = require("./firebase-key.json");
@@ -34,6 +42,34 @@ const ACCOUNT_NO = process.env.ACCOUNT_NO || "0388601940";
 const ACCOUNT_NAME = process.env.ACCOUNT_NAME || "CAN MANH TOAN";
 const QR_TEMPLATE = process.env.QR_TEMPLATE || "compact2";
 const PAYMENT_AMOUNT = Number(process.env.PAYMENT_AMOUNT || 1000);
+
+const PYTHON_SCRIPT_DIR = process.env.PYTHON_SCRIPT_DIR || __dirname;
+
+/* ================= SERIAL PORT (Raspberry Pi -> ESP32) ================= */
+const SERIAL_PORT_PATH = process.env.SERIAL_PORT || "/dev/serial0";
+const SERIAL_BAUD = Number(process.env.SERIAL_BAUD || 115200);
+
+const serialPort = new SerialPort({
+  path: SERIAL_PORT_PATH,
+  baudRate: SERIAL_BAUD,
+  autoOpen: false,
+});
+
+serialPort.open((err) => {
+  if (err) {
+    console.warn("⚠️ Không mở được Serial port:", err.message, "— chỉ dùng Firebase");
+  } else {
+    console.log("✅ Serial port mở:", SERIAL_PORT_PATH);
+  }
+});
+
+serialPort.on("data", (data) => {
+  console.log("📨 ESP32:", data.toString().trim());
+});
+
+serialPort.on("error", (err) => {
+  console.warn("⚠️ Serial port error:", err.message);
+});
 
 /*
   MAP PHẦN CỨNG THỰC TẾ
@@ -78,7 +114,6 @@ function buildQrImageUrl({ amount, content }) {
   );
 }
 
-
 function normalizeText(value) {
   return String(value || "").trim();
 }
@@ -103,20 +138,20 @@ async function openLockerHardware(selectedLocker) {
     throw new Error(`Tủ ${selectedLocker} chưa có cấu hình phần cứng`);
   }
 
-  console.log(
-    `🔓 Yêu cầu mở tủ giao diện: ${selectedLocker} -> mở tủ vật lý: ${hardwareLockerId}`
-  );
-
+  // Ghi lên Firebase để ESP32 lắng nghe
   await db.ref(`locker/${hardwareLockerId}/open`).set(true);
+  console.log(`🔓 Firebase: locker/${hardwareLockerId}/open = true`);
 
-  setTimeout(async () => {
-    try {
-      await db.ref(`locker/${hardwareLockerId}/open`).set(false);
-      console.log(`🔒 Đóng tủ vật lý: ${hardwareLockerId}`);
-    } catch (err) {
-      console.error(`Lỗi đóng tủ vật lý ${hardwareLockerId}:`, err);
-    }
-  }, 5000);
+  // Gửi thêm qua Serial nếu port đang mở
+  if (serialPort.isOpen) {
+    const cmd = `UNLOCK ${hardwareLockerId}\n`;
+    console.log(`🔓 Serial: ${cmd.trim()}`);
+    serialPort.write(cmd, (err) => {
+      if (err) console.error("Lỗi gửi Serial:", err.message);
+    });
+  } else {
+    console.log("⚠️ Serial port chưa mở, chỉ dùng Firebase");
+  }
 }
 
 /* ================= GOOGLE SHEET ================= */
@@ -484,7 +519,6 @@ setInterval(async () => {
       });
 
       await openLockerHardware(order.lockerId);
-      
     }
   } catch (err) {
     console.error("❌ Lỗi đọc sheet:", err);
@@ -504,17 +538,10 @@ app.get("/admin-status", async (req, res) => {
       const lockerId = String(i);
       const hardwareLockerId = getHardwareLockerId(lockerId);
 
-      let openFlag = false;
-
-      if (hardwareLockerId) {
-        const snap = await db.ref(`locker/${hardwareLockerId}/open`).once("value");
-        openFlag = !!snap.val();
-      }
-
       items.push({
         id: lockerId,
         hardwareLockerId: hardwareLockerId || "",
-        openFlag,
+        openFlag: false,
       });
     }
 
@@ -778,6 +805,90 @@ app.delete("/locker-data/:id", async (req, res) => {
     return res.status(500).json({ ok: false });
   }
 });
+/* ================= FACE REGISTRATION ================= */
+app.post("/run-face-register/:lockerId", (req, res) => {
+  const lockerId = normalizeText(req.params.lockerId);
+  const scriptPath = path.join(PYTHON_SCRIPT_DIR, "face_detect.py");
+
+  console.log(`📷 Chạy đăng ký khuôn mặt tủ ${lockerId}: ${scriptPath}`);
+
+  const spawnEnv = { ...process.env, DISPLAY: process.env.DISPLAY || ":0" };
+  const py = spawn("python3", [scriptPath, lockerId], { cwd: PYTHON_SCRIPT_DIR, env: spawnEnv });
+
+  let finished = false;
+
+  function done(ok, message) {
+    if (finished) return;
+    finished = true;
+    if (ok) {
+      res.json({ ok: true, message });
+    } else {
+      res.status(500).json({ ok: false, message });
+    }
+  }
+
+  py.stdout.on("data", (d) => console.log("face_detect stdout:", d.toString().trim()));
+  py.stderr.on("data", (d) => console.error("face_detect stderr:", d.toString().trim()));
+  py.on("close", (code) => {
+    console.log(`face_detect exit code: ${code}`);
+    done(code === 0, code === 0 ? "Đăng ký khuôn mặt thành công" : "Đăng ký khuôn mặt thất bại");
+  });
+  py.on("error", (err) => done(false, "Không thể chạy script: " + err.message));
+
+  setTimeout(() => {
+    if (!finished) {
+      py.kill();
+      done(false, "Quá thời gian đăng ký khuôn mặt (60s)");
+    }
+  }, 60000);
+});
+
+/* ================= FACE RECOGNITION ================= */
+app.post("/run-face-recognize/:lockerId", async (req, res) => {
+  const lockerId = normalizeText(req.params.lockerId);
+  const scriptPath = path.join(PYTHON_SCRIPT_DIR, "regconize_face_detect.py");
+
+  console.log(`🔍 Chạy nhận diện khuôn mặt tủ ${lockerId}: ${scriptPath}`);
+
+  const spawnEnv = { ...process.env, DISPLAY: process.env.DISPLAY || ":0" };
+  const py = spawn("python3", [scriptPath, lockerId], { cwd: PYTHON_SCRIPT_DIR, env: spawnEnv });
+
+  let finished = false;
+
+  async function done(ok, message) {
+    if (finished) return;
+    finished = true;
+
+    if (ok) {
+      // Nhận diện thành công → gửi UNLOCK ngay tại đây
+      try {
+        await openLockerHardware(lockerId);
+        console.log(`🔓 UNLOCK gửi cho tủ ${lockerId} sau nhận diện khuôn mặt`);
+      } catch (e) {
+        console.error("Lỗi gửi UNLOCK sau nhận diện:", e.message);
+      }
+      res.json({ ok: true, message });
+    } else {
+      res.status(401).json({ ok: false, message });
+    }
+  }
+
+  py.stdout.on("data", (d) => console.log("regconize_face_detect stdout:", d.toString().trim()));
+  py.stderr.on("data", (d) => console.error("regconize_face_detect stderr:", d.toString().trim()));
+  py.on("close", (code) => {
+    console.log(`regconize_face_detect exit code: ${code}`);
+    done(code === 0, code === 0 ? "Nhận diện thành công" : "Nhận diện khuôn mặt thất bại");
+  });
+  py.on("error", (err) => done(false, "Không thể chạy script: " + err.message));
+
+  setTimeout(() => {
+    if (!finished) {
+      py.kill();
+      done(false, "Quá thời gian nhận diện khuôn mặt (30s)");
+    }
+  }, 30000);
+});
+
 /* ================= RUN ================= */
 app.get("/admin-revenue-today", async (req, res) => {
   try {
