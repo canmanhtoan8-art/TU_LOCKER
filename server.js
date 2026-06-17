@@ -5,8 +5,12 @@ const admin = require("firebase-admin");
 const path = require("path");
 const fetch = require("node-fetch");
 const { spawn } = require("child_process");
-const { SerialPort } = require("serialport");
-
+let SerialPort = null;
+try {
+  SerialPort = require("serialport").SerialPort;
+} catch (e) {
+  console.log("⚠️ Serial disabled:", e.message);
+}
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -49,27 +53,33 @@ const PYTHON_SCRIPT_DIR = process.env.PYTHON_SCRIPT_DIR || __dirname;
 const SERIAL_PORT_PATH = process.env.SERIAL_PORT || "/dev/serial0";
 const SERIAL_BAUD = Number(process.env.SERIAL_BAUD || 115200);
 
-const serialPort = new SerialPort({
-  path: SERIAL_PORT_PATH,
-  baudRate: SERIAL_BAUD,
-  autoOpen: false,
-});
+let serialPort = null;
 
-serialPort.open((err) => {
-  if (err) {
-    console.warn("⚠️ Không mở được Serial port:", err.message, "— chỉ dùng Firebase");
-  } else {
-    console.log("✅ Serial port mở:", SERIAL_PORT_PATH);
-  }
-});
+if (SerialPort) {
+  serialPort = new SerialPort({
+    path: SERIAL_PORT_PATH,
+    baudRate: SERIAL_BAUD,
+    autoOpen: false,
+  });
 
-serialPort.on("data", (data) => {
-  console.log("📨 ESP32:", data.toString().trim());
-});
+  serialPort.open((err) => {
+    if (err) {
+      console.log("⚠️ Serial lỗi:", err.message);
+    } else {
+      console.log("✅ Serial đã mở");
+    }
+  });
 
-serialPort.on("error", (err) => {
-  console.warn("⚠️ Serial port error:", err.message);
-});
+  serialPort.on("data", (data) => {
+    console.log("ESP32:", data.toString());
+  });
+
+  serialPort.on("error", (err) => {
+    console.log("Serial error:", err.message);
+  });
+}
+
+
 
 /*
   MAP PHẦN CỨNG THỰC TẾ
@@ -143,7 +153,7 @@ async function openLockerHardware(selectedLocker) {
   console.log(`🔓 Firebase: locker/${hardwareLockerId}/open = true`);
 
   // Gửi thêm qua Serial nếu port đang mở
-  if (serialPort.isOpen) {
+  if (serialPort && serialPort.isOpen) {
     const cmd = `UNLOCK ${hardwareLockerId}\n`;
     console.log(`🔓 Serial: ${cmd.trim()}`);
     serialPort.write(cmd, (err) => {
