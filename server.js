@@ -335,14 +335,10 @@ app.get("/qr", async (req, res) => {
       <body>
         <div class="box">
           <h2>Quét QR để thanh toán</h2>
-          <p>Tủ đã chọn trên giao diện: <b>${lockerId}</b></p>
-          <p>Tủ vật lý sẽ mở: <b>${hardwareLockerId}</b></p>
           <p>Số tiền: <b>${PAYMENT_AMOUNT.toLocaleString("vi-VN")}đ</b></p>
           <p>Nội dung chuyển khoản:</p>
           <div class="code">${transferContent}</div>
           <img src="${qrImageUrl}" alt="QR thanh toán" />
-          <p>Đang chờ thanh toán...</p>
-          <p class="note">Hệ thống đang kiểm tra giao dịch từ Google Sheet.</p>
         </div>
 
         <script>
