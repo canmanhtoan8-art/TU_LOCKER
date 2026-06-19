@@ -107,12 +107,22 @@ const HARDWARE_LOCKER_MAP = {
 };
 
 /* ================= HELPER ================= */
-function makeOrderId() {
-  return Date.now().toString();
+function makeOrderId(lockerId) {
+    const now = new Date();
+
+    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const yy = String(now.getFullYear()).slice(-2);
+
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mi = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+
+    return `TU${lockerId}-${dd}${mm}${yy}-${hh}${mi}${ss}`;
 }
 
-function makeTransferContent(lockerId, orderId) {
-  return `TU${lockerId}${orderId}`;
+function makeTransferContent(lockerId) {
+    return makeOrderId(lockerId);
 }
 
 function buildQrImageUrl({ amount, content }) {
@@ -253,8 +263,8 @@ app.get("/qr", async (req, res) => {
       return res.status(400).send(`Tủ ${lockerId} chưa có phần cứng`);
     }
 
-    const orderId = makeOrderId();
-    const transferContent = makeTransferContent(lockerId, orderId);
+    const orderId = makeOrderId(lockerId);
+    const transferContent = makeTransferContent(lockerId);
     const qrImageUrl = buildQrImageUrl({
       amount: PAYMENT_AMOUNT,
       content: transferContent,
